@@ -205,14 +205,18 @@ class MetOfficeDataProvider(DataProvider):
         loaded = (loaded - mean) / std
 
         # convert from flat sequence to windowed data
-        
+        shape = [loaded.shape[-1] - window_size + 1, window_size]
+        strides = loaded.strides + loaded.strides
+        windowed = np.lib.stride_tricks.as_strided(
+            loaded, shape=shape, strides = strides
+        )
 
         # inputs are first (window_size - 1) entries in windows
-        # inputs = ...
+        inputs = windowed[:, :-1]
         # targets are last entry in windows
-        # targets = ...
+        targets = windowed[:, -1]
         # initialise base class with inputs and targets arrays
-        # super(MetOfficeDataProvider, self).__init__(
-        #     inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+        super(MetOfficeDataProvider, self).__init__(
+            inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
     def __next__(self):
             return self.next()
