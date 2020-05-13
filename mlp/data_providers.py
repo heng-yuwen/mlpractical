@@ -133,11 +133,11 @@ class MNISTDataProvider(DataProvider):
         super(MNISTDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
-    # def next(self):
-    #    """Returns next data batch or raises `StopIteration` if at end."""
-    #    inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
-    #    return inputs_batch, self.to_one_of_k(targets_batch)
-    #
+    def next(self):
+       """Returns next data batch or raises `StopIteration` if at end."""
+       inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
+       return inputs_batch, self.to_one_of_k(targets_batch)
+
     def __next__(self):
         return self.next()
 
@@ -156,7 +156,11 @@ class MNISTDataProvider(DataProvider):
             to zero except for the column corresponding to the correct class
             which is equal to one.
         """
-        raise NotImplementedError()
+        int_targets = int_targets.reshape(-1)
+        one_hot_targets = np.eye(10)[int_targets]
+
+        return one_hot_targets
+
 
 
 class MetOfficeDataProvider(DataProvider):
@@ -188,13 +192,21 @@ class MetOfficeDataProvider(DataProvider):
             'Data file does not exist at expected path: ' + data_path
         )
         # load raw data from text file
-        # ...
+        loaded = np.loadtxt(data_path, skiprows=3)
+        loaded = loaded[:, 2:]
+
         # filter out all missing datapoints and flatten to a vector
-        # ...
+        loaded = loaded.flatten()
+        loaded = loaded[loaded != -99.9]
+
         # normalise data to zero mean, unit standard deviation
-        # ...
+        mean = loaded.mean()
+        std = np.linalg.norm(loaded)
+        loaded = (loaded - mean) / std
+
         # convert from flat sequence to windowed data
-        # ...
+        
+
         # inputs are first (window_size - 1) entries in windows
         # inputs = ...
         # targets are last entry in windows
